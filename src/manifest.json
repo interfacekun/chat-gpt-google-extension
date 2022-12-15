@@ -9,7 +9,7 @@
     "48": "logo.png",
     "128": "logo.png"
   },
-  "host_permissions": ["https://*.openai.com/"],
+  "host_permissions": ["https://*.openai.com/", "http://192.168.82.186:8081"],
   "permissions": ["storage"],
   "background": {
     "service_worker": "background.js"
@@ -218,7 +218,8 @@
         "https://search.brave.com/search*",
         "https://*.yandex.com/search*",
         "https://duckduckgo.com/*",
-        "https://www.baidu.com/s*"
+        "https://www.baidu.com/s*",
+        "https://chat.openai.com/chat"
       ],
       "js": ["content-script.js"],
       "css": ["content-script.css"]
