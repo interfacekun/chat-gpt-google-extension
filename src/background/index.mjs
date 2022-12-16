@@ -72,15 +72,39 @@ async function generateAnswers(port, question) {
 }
 
 let CMD = {}
-let states = {msgId: uuidv4()};
+let states = {
+    msgId: uuidv4(),
+    conversation_id: undefined
+};
 
 CMD.logined = () => {
+    Browser.storage.sync.get("msgid").then((result) => {
+        console.log("msgid", result);
+        if (result != undefined && result["msgid"]) {
+            states.msgId = result["msgid"];
+        }
+    });
+    
+    Browser.storage.sync.get("cid").then((result) => {
+        console.log("conversation_id", result);
+        if (result != undefined && result["cid"]) {
+            states.conversation_id = result["cid"];
+        }
+    });
+
+    console.log("init done");
 }
 
 
 async function  getChatgptReply(question) {
     return new Promise(async (resolve) => {
-        const accessToken = await getAccessToken()
+        let accessToken;
+        try {
+            accessToken = await getAccessToken()
+        } catch (error) {
+            resolve("哇哦😮，登录过期，请重新登录");
+        }
+        
         const controller = new AbortController()
         let response = "";
 
@@ -115,6 +139,8 @@ async function  getChatgptReply(question) {
             onMessage(message) {
                 if (message === '[DONE]') {
                     resolve(response);
+                    Browser.storage.sync.set({"msgid": states.msgId});
+                    Browser.storage.sync.set({"cid": states.conversation_id});
                     return
                 }
                 const data = JSON.parse(message)
@@ -125,7 +151,8 @@ async function  getChatgptReply(question) {
                 }
                 const id = data.message?.id
                 if (id) {
-                    msgId = id;
+                    states.msgId = id;
+                  
                 }
                 const cid = data.conversation_id
                 if (cid) {
@@ -135,7 +162,7 @@ async function  getChatgptReply(question) {
             })
         } catch (error) {
             console.error("fetchSSE error", error);
-            resolve(response);
+            resolve(response + "。\n哇哦😯，网络超时，请重试");
             return;
         }
     })
